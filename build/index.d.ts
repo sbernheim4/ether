@@ -18,15 +18,8 @@ declare class Either<A> {
      */
     isRight(): boolean;
     /**
-     *
-     *
-     *
-     */
-    exists(): void;
-    /**
-     *
-     *
-     *
+     * Returns the underlying value regardless of whether the instance
+     * is a Left or a Right.
      */
     get(): A;
     /**
@@ -49,7 +42,7 @@ declare class Either<A> {
      *     .orElse(fn4ReturnsEither())
      * ```
      */
-    orElse<B>(otherEither: Either<B>): Either<A> | Either<B>;
+    orElse<B>(otherEither: Either<B>): Either<A | B>;
     /**
      * Transforms the underlying value if the instance is a Right by
      * applying the provided function to the underlying value, returning
@@ -59,7 +52,7 @@ declare class Either<A> {
      * @remarks Prefer this to `flatMap` when the provided function does
      * not return an Either.
      */
-    map<B>(fn: (val: A) => B): Either<A> | Either<B>;
+    map<B>(fn: (val: A) => B): Either<A | B>;
     /**
      * A static version of map. Useful for lifting functions of type
      * (val: A) => B to be a function of type
@@ -87,31 +80,91 @@ declare class Either<A> {
      * // eitherEmailOrError2 => Left("Error: name not entered");
      * ```
      */
-    static map<B, A>(fn: (val: A) => B): (either: Either<A>) => Either<A> | Either<B>;
+    static map<B, A>(fn: (val: A) => B): (either: Either<A>) => Either<A | B>;
     /**
+     * An alias for Option.map. Perhaps a more accurate or descriptive
+     * name.
      *
+     * Lifts a function of type (val: A) => B
+     * to be a function of type (val: Either<A>) => Either<B>.
      *
+     * @example
+     * // Working with number
+     * const addFive = (val: number) => val + 5;
+     * const eight = addFive(3);
      *
+     * // Working with Either<number>
+     * const addFiveToEither = Either.lift(addFive);
+     * const eightOrError = addFiveToEither(Right(3));
      */
-    lift(): void;
+    static lift<B, A>(fn: (val: A) => B): (either: Either<A>) => Either<A | B>;
     /**
-     *
-     *
-     *
-     */
+     * */
     liftN(): void;
     /**
+     * Applies the function wrapped in the current instance (as a Right)
+     * to the provided Either argument.
      *
+     * If the instance is a Left, the instance is returned.
      *
+     * If the instance is a Right, and the argument a Left, the argument
+     * is returned.
      *
+     * If the instance is a Right, and the argument is a Right, the
+     * result of applying the function to the argument's underlying
+     * value is returned (wrapped in an Either as a Right).
+     *
+     * @remarks An Either is always returned.
+     * @remarks The Either's Right underlying value must be a function
+     * of the type (val: A) => B.
+     * @remarks Useful when the function to apply to another Either is
+     * itself wrapped in an Either.
+     *
+     * @example
+     * ```
+     * const double = (val: number): number => val * 2;
+     *
+     * // These next two lines could be a single value returned by a
+     * // function that either succeeds (and so returns the function in
+     * // a Right) or fails (and returns the error in a Left).
+     * const myRightEither = Right(double);
+     * const myLeftEither = Left("uh oh, something broke");
+     *
+     * // Everything works out nicely if all Eithers are Rights
+     * const resOne = myRight.ap(Right(42)); // => Right(84)
+     *
+     * // If the Either (containing the function or error) is a Left,
+     * // that instance (containing the error) is returned.
+     * const resTwo = myLeftEither.ap(Right(42));
+     * // => Left("uh oh, something "broke)
+     *
+     * // If the argument to ap is a Left, and the instance is a Right,
+     * // the argument is returned.
+     * const resThree = myRightEither.ap(Left(42)); // => Left(42)
+     * ```
      */
-    ap(): void;
+    ap<B, C>(either: Either<B>): Either<A | B | C>;
     /**
+     * Applies one of the provided functions to the instance's
+     * underlying value, returning the result of applying the function.
      *
+     * If the instance is a Left, fnA is applied.
+     * If the instance is a Right, fnB is applied.
      *
+     * @remarks Regardless of whether the instance is a Left or Right,
+     * the result of applying the function to the underlying value is
+     * returned.
      *
+     * @example
+     * const double = val => val * 2;
+     * const triple = val => val * 3;
+     *
+     * ```
+     * Left(7).fold(double, triple); // => 14
+     * Right(7).fold(double, triple); // => 21
+     * ```
      */
-    fold(): void;
+    fold<B>(fnA: (val: A) => B, fnB: (val: A) => B): B;
     /**
      * Transforms and returns the underlying value if the instance is a
      * Right by applying the provided function to the underlying value.
@@ -123,7 +176,7 @@ declare class Either<A> {
      * @remarks If unsure of which method to use between `map`,
      * `flatMap`, and `then`, `then` should always work.
      */
-    flatMap<B>(fn: (val: A) => Either<B>): Either<A> | Either<B>;
+    flatMap<B>(fn: (val: A) => Either<B>): Either<A | B>;
     /**
      * A static version of flatMap. Useful for lifting functions of type
      * (val: A) => Either<B> to be a function of type
@@ -162,7 +215,7 @@ declare class Either<A> {
      * const emailAddressOrError3 = Either.flatMap(appendIfValid)(opt);
      * ```
      */
-    static flatMap<B, A>(fn: (val: A) => Either<B>): (either: Either<A>) => Either<B> | Either<A>;
+    static flatMap<B, A>(fn: (val: A) => Either<B>): (either: Either<A>) => Either<A | B>;
     /**
  * Usable in place of both map and flatMap.
  * Accepts a function that returns either an Either or non Either
@@ -197,22 +250,19 @@ declare class Either<A> {
  *                                    .then(alwaysDouble);
  * ```
  */
-    then<B>(fn: (val: A) => B | Either<B>): Either<A> | Either<B>;
+    then<B>(fn: (val: A) => B | Either<B>): Either<A | B>;
     /**
+     * Flattens a wrapped Either.
      *
-     *
-     *
+     * If the instance's underlying value is not an Either, the instance
+     * is returned.
      */
-    flatten(): void;
+    flatten<B>(): Either<A | B>;
     /**
-     *
-     *
      *
      */
     filter(): void;
     /**
-     *
-     *
      *
      */
     filterNot(): void;
@@ -226,7 +276,8 @@ declare class Either<A> {
      */
     contains(value: A, equalityFn?: (valOne: A, valTwo: A) => boolean): boolean;
     /**
-     * Swaps the type of the instance and returns the now swapped instance.
+     * Swaps the type of the instance and returns the now
+     * swapped instance.
      * If it's a Left, it becomes a Right.
      * If it's Right, it becomes a Left.
      */
@@ -317,6 +368,6 @@ declare class Either<A> {
      * // The above is equivalent to => Left("Something broke");
      * ```
      */
-    static of<T>(val: T, type: 'left' | 'right'): Either<T>;
+    static of<T>(val: T, type: 'left' | 'right'): Left<T> | Right<T>;
 }
 export {};
