@@ -1,8 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Right = exports.Left = void 0;
+// @ts-ignore
 var Left = function (error) { return new Either(error, 'left'); };
 exports.Left = Left;
+// @ts-ignore
 var Right = function (result) { return new Either(result, 'right'); };
 exports.Right = Right;
 var Either = /** @class */ (function () {
@@ -87,12 +89,12 @@ var Either = /** @class */ (function () {
      * ```
      * const appendToString = (val: string) => val + "@gmail.com";
      *
-     * // Eithers (possibly returned by other functions):
+     * // Eithers (possibly returned by other functions)
      * const either = Right("johnsmith");
      * const otherEither = Left("Error: name not entered");
      *
      * // Create a version of appendToString that works on values that
-     * // are Eithers
+     * // are Eithers.
      * const appendToEitherString = Either.map(appendToString);
      *
      * const eitherEmailOrError = appendToEitherString(either);
@@ -128,8 +130,9 @@ var Either = /** @class */ (function () {
             return either.map(fn);
         };
     };
-    /**
-     * */
+    /*
+     *
+     */
     Either.prototype.liftN = function () {
     };
     /**
@@ -317,24 +320,60 @@ var Either = /** @class */ (function () {
     /**
      * Flattens a wrapped Either.
      *
-     * If the instance's underlying value is not an Either, the instance
-     * is returned.
+     * If the instance is a Left, the instance is returned.
+     * If the instance is a Right and the underlying value is an Either,
+     * the underlying value is returned.
+     * If the instance is a Right but the undnerlying value is not an
+     * Either, the instance is returned.
+     *
+     * @remarks In all cases, an Either is returned.
      */
     Either.prototype.flatten = function () {
-        if (this.get() instanceof Either) {
-            return this.get();
+        if (this.isLeft()) {
+            return this;
+        }
+        // The instance must be a Right
+        var underlyingValue = this.get();
+        if (underlyingValue instanceof Either) {
+            return underlyingValue;
         }
         return this;
     };
     /**
+     * Returns the instance if the instance is a Left.
+     * Returns the instance if the instance is a Right and passes the
+     * provided filter function.
+     * Returns the otherEither if the instance is a Right and fails the
+     * provided filter function.
      *
-     */
-    Either.prototype.filter = function () {
-    };
-    /**
+     * @example
+     * ```
+     * Right(42).filterOrElse(
+     *     val => val > 20,
+     *     Left("not bigger than 20")
+     * ); // => Right(42)
      *
+     * Left("uh oh, something broke").filterOrElse(
+     *     val => val > 20,
+     *     Left("not bigger than 20")
+     * ); // => Left("uh oh, something broke")
+     *
+     * Right(19).filterOrElse(
+     *     val => val > 20,
+     *     Left("not bigger than 20")
+     * ); // => Left("not bigger than 20")
+     * ```
      */
-    Either.prototype.filterNot = function () {
+    Either.prototype.filterOrElse = function (filterFn, otherEither) {
+        if (this.isLeft()) {
+            return this;
+        }
+        if (filterFn(this.get())) {
+            return this;
+        }
+        else {
+            return otherEither;
+        }
     };
     /**
      * Returns true if the instance's underlying value equals the

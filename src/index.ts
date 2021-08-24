@@ -1,5 +1,14 @@
-export const Left = <T>(error: T): Left<T> => new Either(error, 'left');
-export const Right = <T>(result: T): Right<T> => new Either (result, 'right');
+// @ts-ignore
+export const Left = <T>(error: T): Left<T> => new Either(
+    error,
+    'left'
+);
+
+// @ts-ignore
+export const Right = <T>(result: T): Right<T> => new Either (
+    result,
+    'right'
+);
 
 export type Left<A> = Either<A>;
 export type Right<A> = Either<A>;
@@ -12,7 +21,7 @@ class Either<A>{
     /**
      * Construct an instance of an Either.
      */
-    constructor(value: A, type: 'left' | 'right') {
+    private constructor(value: A, type: 'left' | 'right') {
         this.value = value;
         this.type = type;
     }
@@ -99,12 +108,12 @@ class Either<A>{
      * ```
      * const appendToString = (val: string) => val + "@gmail.com";
      *
-     * // Eithers (possibly returned by other functions):
+     * // Eithers (possibly returned by other functions)
      * const either = Right("johnsmith");
      * const otherEither = Left("Error: name not entered");
      *
      * // Create a version of appendToString that works on values that
-     * // are Eithers
+     * // are Eithers.
      * const appendToEitherString = Either.map(appendToString);
      *
      * const eitherEmailOrError = appendToEitherString(either);
@@ -150,8 +159,9 @@ class Either<A>{
         }
     }
 
-    /**
-     * */
+    /*
+     *
+     */
     liftN() {
 
     }
@@ -354,29 +364,69 @@ class Either<A>{
     /**
      * Flattens a wrapped Either.
      *
-     * If the instance's underlying value is not an Either, the instance
-     * is returned.
+     * If the instance is a Left, the instance is returned.
+     * If the instance is a Right and the underlying value is an Either,
+     * the underlying value is returned.
+     * If the instance is a Right but the undnerlying value is not an
+     * Either, the instance is returned.
+     *
+     * @remarks In all cases, an Either is returned.
      */
     flatten<B>(): Either<A | B> {
-        if (this.get() instanceof Either) {
-            return this.get() as unknown as Either<B>;
+
+        if (this.isLeft()) {
+            return this;
         }
 
-        return this as Either<A>
+        // The instance must be a Right
+
+        const underlyingValue = this.get();
+
+        if (underlyingValue instanceof Either) {
+            return underlyingValue
+        }
+
+        return this;
     }
 
     /**
+     * Returns the instance if the instance is a Left.
+     * Returns the instance if the instance is a Right and passes the
+     * provided filter function.
+     * Returns the otherEither if the instance is a Right and fails the
+     * provided filter function.
      *
-     */
-    filter() {
-
-    }
-
-    /**
+     * @example
+     * ```
+     * Right(42).filterOrElse(
+     *     val => val > 20,
+     *     Left("not bigger than 20")
+     * ); // => Right(42)
      *
+     * Left("uh oh, something broke").filterOrElse(
+     *     val => val > 20,
+     *     Left("not bigger than 20")
+     * ); // => Left("uh oh, something broke")
+     *
+     * Right(19).filterOrElse(
+     *     val => val > 20,
+     *     Left("not bigger than 20")
+     * ); // => Left("not bigger than 20")
+     * ```
      */
-    filterNot() {
+    filterOrElse<B>(
+        filterFn: (either: A) => boolean,
+        otherEither: Left<B>
+    ): Either<A> | Left<B> {
+        if (this.isLeft()) {
+            return this;
+        }
 
+        if (filterFn(this.get())) {
+            return this;
+        } else {
+            return otherEither;
+        }
     }
 
     /**
