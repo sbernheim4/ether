@@ -1,0 +1,26 @@
+{
+  "name": "either",
+  "version": "0.0.1",
+  "description": "A typed, standalone Either object for JavaScript and TypeScript",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "scripts": {
+    "test": "jest --coverage",
+    "test:watch": "jest --watch",
+    "build": "tsc",
+    "build:watch": "tsc --watch"
+  },
+  "keywords": [
+    "Either"
+  ],
+  "author": "Samuel Bernheim",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jest": "^27.0.1",
+    "@types/node": "^16.6.1",
+    "jest": "^27.0.6",
+    "ts-jest": "^27.0.4",
+    "ts-node": "^10.2.1",
+    "typescript": "^4.3.5"
+  }
+}
