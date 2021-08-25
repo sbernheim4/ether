@@ -245,7 +245,7 @@ export class Either<A>{
             }
 
             const updatedValue = either.ap(
-                shadowArgs.at(0) as Either<unknown>
+                shadowArgs[0] as Either<unknown>
             );
 
             return recurse(
