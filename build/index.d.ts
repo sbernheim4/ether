@@ -1,18 +1,26 @@
 /**
- * Creates a Left Either instance.
+ * Creates a Left Either instance using the provided argument as the
+ * underlying value.
  *
  * @remarks Left is considered the failed track.
  */
 export declare const Left: <T>(value: T) => Left<T>;
 /**
- * Creates a Right Either instance.
+ * Creates a Right Either instance using the provided argument as the
+ * underlying value.
  *
  * @remarks Right is considered the success track.
  */
 export declare const Right: <T>(value: T) => Right<T>;
 export declare type Left<A> = Either<A>;
 export declare type Right<A> = Either<A>;
-declare class Either<A> {
+/**
+ * The Either class
+ *
+ * Construct instances of an Either through the provided `Left` and
+ * `Right` functions or the class's static `of` method.
+ */
+export declare class Either<A> {
     private value;
     private type;
     /**
@@ -455,4 +463,3 @@ declare class Either<A> {
      */
     static of<T>(val: T, type: 'left' | 'right'): Left<T> | Right<T>;
 }
-export {};

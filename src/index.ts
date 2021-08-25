@@ -1,5 +1,6 @@
 /**
- * Creates a Left Either instance.
+ * Creates a Left Either instance using the provided argument as the
+ * underlying value.
  *
  * @remarks Left is considered the failed track.
  */
@@ -12,7 +13,8 @@ export const Left = <T>(
 );
 
 /**
- * Creates a Right Either instance.
+ * Creates a Right Either instance using the provided argument as the
+ * underlying value.
  *
  * @remarks Right is considered the success track.
  */
@@ -27,7 +29,13 @@ export const Right = <T>(
 export type Left<A> = Either<A>;
 export type Right<A> = Either<A>;
 
-class Either<A>{
+/**
+ * The Either class
+ *
+ * Construct instances of an Either through the provided `Left` and
+ * `Right` functions or the class's static `of` method.
+ */
+export class Either<A>{
 
     private value: A;
     private type: 'left' | 'right';

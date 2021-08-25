@@ -1,8 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Right = exports.Left = void 0;
+exports.Either = exports.Right = exports.Left = void 0;
 /**
- * Creates a Left Either instance.
+ * Creates a Left Either instance using the provided argument as the
+ * underlying value.
  *
  * @remarks Left is considered the failed track.
  */
@@ -11,7 +12,8 @@ var Left = function (value
 ) { return new Either(value, 'left'); };
 exports.Left = Left;
 /**
- * Creates a Right Either instance.
+ * Creates a Right Either instance using the provided argument as the
+ * underlying value.
  *
  * @remarks Right is considered the success track.
  */
@@ -19,6 +21,12 @@ var Right = function (value
 // @ts-ignore
 ) { return new Either(value, 'right'); };
 exports.Right = Right;
+/**
+ * The Either class
+ *
+ * Construct instances of an Either through the provided `Left` and
+ * `Right` functions or the class's static `of` method.
+ */
 var Either = /** @class */ (function () {
     /**
      * Construct an instance of an Either.
@@ -605,3 +613,4 @@ var Either = /** @class */ (function () {
     };
     return Either;
 }());
+exports.Either = Either;
