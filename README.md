@@ -4,8 +4,53 @@ A fully typed, zero dependency implementation of the functional programming Eith
 
 Eithers are incredibly useful for functions that may throw an error. Throwing an error breaks the control flow of your program. The Either object is functional programming's solutions to handling functions that may error or succeed (and return a value).
 
+## Benefits of Eithers
 
-### Methods
+## Getting Started
+
+### Install the Module
+`npm i -g either`
+
+### Use the Module
+
+```ts
+import { Left, Right, Either } from "either"
+
+const myFirstEither = Left('uh oh, something broke');
+const myOtherEither = Right(42);
+
+const alsoAnEither = Either.of(
+    'on a roll',
+    'right'
+); // => Equivalent to Right('on a roll')
+
+const stillAnEither = Either.of(
+    new Error("Cannot read property foo of undefined"),
+    'left'
+); // => Equivalent to Left(new Error("Cannot read property foo of undefined");
+```
+
+## Notes and Best Practices
+
+### Logging Options
+When doing `console.log(myEither);` it's best to do `console.log(myEither.toString())`. This provides better output. JavaScript does not automatically invoke an object's `toString` method by default.
+
+For convenience, there is a shorter named equivalent `.toStr` method.
+
+For even more convenience, there is a `.log` method which will invoke `console.log` and the `toString` method for you.
+
+```ts
+const myEither = Right("Hello World");
+
+// The below are all equivalent
+console.log(myEither.toString());
+console.log(myEither.toStr();
+myEither.log();
+```
+
+
+
+## Methods
 /**
  * Returns true if the instance is a Left. Returns false otherwise.
  */
