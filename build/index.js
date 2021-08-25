@@ -130,10 +130,62 @@ var Either = /** @class */ (function () {
             return either.map(fn);
         };
     };
-    /*
+    /**
+     * Like Either.lift but for functions with an arbitrary number of
+     * arguments instead of just one.
      *
+     * Lifts a function, with an arbitrary number of arguments, where
+     * each argument is not an Either, to be a function that works on
+     * Either versions of those arguments.
+     *
+     * @remarks This function has very weak type support and strict
+     * requirements to work correctly. Use with caution.
+     * @remarks The provided function **must** be completely curried.
+     * @remarks If any of the provided Either arguments are a None, a
+     * None will be returned.
+     * @remarks Each argument in the provided curried function must have
+     * the same type as its corresponding Either type. See the 2nd
+     * example below.
+     * @remarks All of the Either arguments for the provided function
+     * must be passed when liftN is invoked.
+     *
+     * @example
+     * ```
+     * Either.liftN<number>(
+     *     (a: number) => (b: number) => (c: number) => a + b + c,
+     *     Some(18),
+     *     Some(4),
+     *     Some(6)
+     * ); // => Some(28)
+     *
+     * // Since the 2nd argument (b) is defined as an object with a
+     * // property age whose type is a number, the 2nd Either must be
+     * // an Either whose underlying value is an Object with a property
+     * // called age whose value is a number. This required relationship
+     * // is **not** enforced by the type system.
+     * Either.liftN<number>(
+     *     (a: number) => (b: { age: number }) => a + b.age,
+     *     Some(78),
+     *     Some({ age: 22 })
+     * ); // => Some(100)
+     * ```
      */
-    Either.prototype.liftN = function () {
+    Either.liftN = function (
+    // @ts-ignore
+    fn) {
+        var args = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            args[_i - 1] = arguments[_i];
+        }
+        var recurse = function (either, shadowArgs) {
+            if (shadowArgs.length === 0) {
+                return either;
+            }
+            var updatedValue = either.ap(shadowArgs.at(0));
+            return recurse(updatedValue, shadowArgs.slice(1));
+        };
+        var initialValue = args[0].map(function () { return fn; });
+        return recurse(initialValue, args);
     };
     /**
      * Applies the function wrapped in the current instance (as a Right)
@@ -156,24 +208,27 @@ var Either = /** @class */ (function () {
      *
      * @example
      * ```
-     * const double = (val: number): number => val * 2;
+     * const getFunctionOrError = () => {
+     *     return Math.random() > .5 ?
+     *         Right(val => val * 2) :
+     *         Left("bad luck today");
+     * }
+     * // These next two constants could be retrieved by calling
+     * // getFunctionOrError. Imagine it's been called twice and
+     * // returned the following two Eithers.
+     * const myRightEither = Right(val => val * 2);
+     * const myLeftEither = Left("bad luck today");
      *
-     * // These next two lines could be a single value returned by a
-     * // function that either succeeds (and so returns the function in
-     * // a Right) or fails (and returns the error in a Left).
-     * const myRightEither = Right(double);
-     * const myLeftEither = Left("uh oh, something broke");
-     *
-     * // Everything works out nicely if all Eithers are Rights
-     * const resOne = myRight.ap(Right(42)); // => Right(84)
+     * // Everything works nicely if all the Eithers are Rights
+     * const resOne = myRightEither.ap(Right(42)); // => Right(84)
      *
      * // If the Either (containing the function or error) is a Left,
      * // that instance (containing the error) is returned.
      * const resTwo = myLeftEither.ap(Right(42));
-     * // => Left("uh oh, something "broke)
+     * // => Left("bad luck today")
      *
      * // If the argument to ap is a Left, and the instance is a Right,
-     * // the argument is returned.
+     * // the argument is returned with no modification.
      * const resThree = myRightEither.ap(Left(42)); // => Left(42)
      * ```
      */
@@ -274,39 +329,39 @@ var Either = /** @class */ (function () {
         };
     };
     /**
- * Usable in place of both map and flatMap.
- * Accepts a function that returns either an Either or non Either
- * value.
- *
- * Always returns an Either.
- *
- * Makes the Either class into a thenable.
- *
- * If the instance is a None, a None is returned.
- * If the provided function returns an Either, the result of
- * applying the function to the underlying value is returned.
- * If the provided function returns a non Either, the result of
- * applying the function to the underlying value is lifted into an
- * Either and returned.
- *
- * @example
- * ```
- * const myEither = Some(10);
- *
- * const maybeDouble = (val: number): Either<number> => {
- *     Math.random() > .5 ?
- *         Right(val * 2) :
- *         Left("Just not your day :(. Try again next time");
- * }
- *
- * const alwaysDouble = (val: number): number => val * 2;
- *
- * // function calls can be chained with .then regarless if the
- * // functions passed to then return an Either or non Either value.
- * const eitherErrorOrValue = myEither.then(maybeDouble)
- *                                    .then(alwaysDouble);
- * ```
- */
+     * Usable in place of both map and flatMap.
+     * Accepts a function that returns either an Either or non Either
+     * value.
+     *
+     * Always returns an Either.
+     *
+     * Makes the Either class into a thenable.
+     *
+     * If the instance is a None, a None is returned.
+     * If the provided function returns an Either, the result of
+     * applying the function to the underlying value is returned.
+     * If the provided function returns a non Either, the result of
+     * applying the function to the underlying value is lifted into an
+     * Either and returned.
+     *
+     * @example
+     * ```
+     * const myEither = Some(10);
+     *
+     * const maybeDouble = (val: number): Either<number> => {
+     *     Math.random() > .5 ?
+     *         Right(val * 2) :
+     *         Left("Just not your day :(. Try again next time");
+     * }
+     *
+     * const alwaysDouble = (val: number): number => val * 2;
+     *
+     * // function calls can be chained with .then regarless if the
+     * // functions passed to then return an Either or non Either value.
+     * const eitherErrorOrValue = myEither.then(maybeDouble)
+     *                                    .then(alwaysDouble);
+     * ```
+     */
     Either.prototype.then = function (fn) {
         if (this.isLeft()) {
             return this;
@@ -390,8 +445,10 @@ var Either = /** @class */ (function () {
     /**
      * Swaps the type of the instance and returns the now
      * swapped instance.
-     * If it's a Left, it becomes a Right.
-     * If it's Right, it becomes a Left.
+     * If the instance is a Left, it becomes a Right.
+     * If the instance is a Right, it becomes a Left.
+     *
+     * @remarks The underlying value is not modified.
      */
     Either.prototype.swap = function () {
         var newType = this.isLeft() ?

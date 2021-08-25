@@ -29,14 +29,14 @@ class Either<A>{
     /**
      * Returns true if the instance is a Left. Returns false otherwise.
      */
-    isLeft() {
+    isLeft(): boolean {
         return this.type === 'left';
     }
 
     /**
      * Returns true if the instance is a Right. Returns true otherwise.
      */
-    isRight() {
+    isRight(): boolean {
         return this.type === 'right';
     }
 
@@ -52,8 +52,7 @@ class Either<A>{
      * Returns the underlying value if it's a Right. Returns the
      * provided argument otherwise.
      */
-
-    getOrElse<B>(fallback: B) {
+    getOrElse<B>(fallback: B): A | B {
         return this.isLeft() ?
             fallback :
             this.get();
@@ -74,7 +73,6 @@ class Either<A>{
      *     .orElse(fn4ReturnsEither())
      * ```
      */
-
     orElse<B>(otherEither: Either<B>): Either<A | B> {
         return this.isLeft() ?
             otherEither :
@@ -159,11 +157,75 @@ class Either<A>{
         }
     }
 
-    /*
+    /**
+     * Like Either.lift but for functions with an arbitrary number of
+     * arguments instead of just one.
      *
+     * Lifts a function, with an arbitrary number of arguments, where
+     * each argument is not an Either, to be a function that works on
+     * Either versions of those arguments.
+     *
+     * @remarks This function has very weak type support and strict
+     * requirements to work correctly. Use with caution.
+     * @remarks The provided function **must** be completely curried.
+     * @remarks If any of the provided Either arguments are a None, a
+     * None will be returned.
+     * @remarks Each argument in the provided curried function must have
+     * the same type as its corresponding Either type. See the 2nd
+     * example below.
+     * @remarks All of the Either arguments for the provided function
+     * must be passed when liftN is invoked.
+     *
+     * @example
+     * ```
+     * Either.liftN<number>(
+     *     (a: number) => (b: number) => (c: number) => a + b + c,
+     *     Some(18),
+     *     Some(4),
+     *     Some(6)
+     * ); // => Some(28)
+     *
+     * // Since the 2nd argument (b) is defined as an object with a
+     * // property age whose type is a number, the 2nd Either must be
+     * // an Either whose underlying value is an Object with a property
+     * // called age whose value is a number. This required relationship
+     * // is **not** enforced by the type system.
+     * Either.liftN<number>(
+     *     (a: number) => (b: { age: number }) => a + b.age,
+     *     Some(78),
+     *     Some({ age: 22 })
+     * ); // => Some(100)
+     * ```
      */
-    liftN() {
+    static liftN<A>(
+        // @ts-ignore
+        fn,
+        ...args: [Either<unknown>, ...Either<unknown>[]]
+    ): Either<A> {
 
+        const recurse = (
+            either: Either<unknown | A>,
+            shadowArgs: Either<unknown>[]
+        ): Either<A> => {
+
+            if(shadowArgs.length === 0) {
+                return either as Either<A>
+            }
+
+            const updatedValue = either.ap(
+                shadowArgs.at(0) as Either<unknown>
+            );
+
+            return recurse(
+                updatedValue,
+                shadowArgs.slice(1)
+            );
+
+        }
+
+        const initialValue = args[0].map(() => fn);
+
+        return recurse(initialValue, args);
     }
 
     /**
@@ -187,24 +249,27 @@ class Either<A>{
      *
      * @example
      * ```
-     * const double = (val: number): number => val * 2;
+     * const getFunctionOrError = () => {
+     *     return Math.random() > .5 ?
+     *         Right(val => val * 2) :
+     *         Left("bad luck today");
+     * }
+     * // These next two constants could be retrieved by calling
+     * // getFunctionOrError. Imagine it's been called twice and
+     * // returned the following two Eithers.
+     * const myRightEither = Right(val => val * 2);
+     * const myLeftEither = Left("bad luck today");
      *
-     * // These next two lines could be a single value returned by a
-     * // function that either succeeds (and so returns the function in
-     * // a Right) or fails (and returns the error in a Left).
-     * const myRightEither = Right(double);
-     * const myLeftEither = Left("uh oh, something broke");
-     *
-     * // Everything works out nicely if all Eithers are Rights
-     * const resOne = myRight.ap(Right(42)); // => Right(84)
+     * // Everything works nicely if all the Eithers are Rights
+     * const resOne = myRightEither.ap(Right(42)); // => Right(84)
      *
      * // If the Either (containing the function or error) is a Left,
      * // that instance (containing the error) is returned.
      * const resTwo = myLeftEither.ap(Right(42));
-     * // => Left("uh oh, something "broke)
+     * // => Left("bad luck today")
      *
      * // If the argument to ap is a Left, and the instance is a Right,
-     * // the argument is returned.
+     * // the argument is returned with no modification.
      * const resThree = myRightEither.ap(Left(42)); // => Left(42)
      * ```
      */
@@ -313,7 +378,7 @@ class Either<A>{
         }
     }
 
-        /**
+    /**
      * Usable in place of both map and flatMap.
      * Accepts a function that returns either an Either or non Either
      * value.
@@ -453,10 +518,12 @@ class Either<A>{
     /**
      * Swaps the type of the instance and returns the now
      * swapped instance.
-     * If it's a Left, it becomes a Right.
-     * If it's Right, it becomes a Left.
+     * If the instance is a Left, it becomes a Right.
+     * If the instance is a Right, it becomes a Left.
+     *
+     * @remarks The underlying value is not modified.
      */
-    swap() {
+    swap(): Either<A> {
         const newType = this.isLeft() ?
             'right' :
             'left';
@@ -480,7 +547,7 @@ class Either<A>{
      * Returns a Set containing the underlying value when the instance
      * is a Right. Returns an empty Set otherwise.
      */
-    toSet() {
+    toSet(): Set<A> {
         return this.isLeft() ?
             new Set() :
             new Set<A>().add(this.get());
@@ -566,7 +633,7 @@ class Either<A>{
      *     .getOrElse(-1);
      * ```
      */
-    logAndContinue() {
+    logAndContinue(): Either<A> {
         console.log(this.toStr());
 
         return this;
