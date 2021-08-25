@@ -141,8 +141,8 @@ var Either = /** @class */ (function () {
      * @remarks This function has very weak type support and strict
      * requirements to work correctly. Use with caution.
      * @remarks The provided function **must** be completely curried.
-     * @remarks If any of the provided Either arguments are a None, a
-     * None will be returned.
+     * @remarks If any of the provided Either arguments are a Left, the
+     * Left will be returned.
      * @remarks Each argument in the provided curried function must have
      * the same type as its corresponding Either type. See the 2nd
      * example below.
@@ -153,10 +153,10 @@ var Either = /** @class */ (function () {
      * ```
      * Either.liftN<number>(
      *     (a: number) => (b: number) => (c: number) => a + b + c,
-     *     Some(18),
-     *     Some(4),
-     *     Some(6)
-     * ); // => Some(28)
+     *     Right(18),
+     *     Right(4),
+     *     Right(6)
+     * ); // => Right(28)
      *
      * // Since the 2nd argument (b) is defined as an object with a
      * // property age whose type is a number, the 2nd Either must be
@@ -165,9 +165,9 @@ var Either = /** @class */ (function () {
      * // is **not** enforced by the type system.
      * Either.liftN<number>(
      *     (a: number) => (b: { age: number }) => a + b.age,
-     *     Some(78),
-     *     Some({ age: 22 })
-     * ); // => Some(100)
+     *     Right(78),
+     *     Right({ age: 22 })
+     * ); // => Right(100)
      * ```
      */
     Either.liftN = function (
@@ -310,16 +310,18 @@ var Either = /** @class */ (function () {
      * const either = Right("johnsmith");
      * const otherEither = Left(new Error("invalid username"));
      *
-     * // Create a version of appendIfValid that works on Either<string>
+     * // Create a version of appendIfValid that works on
+     * // Either<string>
      * const appendToEitherStrIfValid = Either.flatMap(appendIfValid);
      *
-     * const  = appendToEitherStrIfValid(opt);
-     * // emailAddressOrError => Some("johnsmith@gmail.com")
+     * const emailAddressOrError = appendToEitherStrIfValid(opt);
+     * // emailAddressOrError => Right("johnsmith@gmail.com")
      *
      * const emailAddressOrError2 = appendToEitherStrIfValid(otherOpt);
-     * // emailAddressOrError2 => None()
+     * // emailAddressOrError2 => Left(new Error("invalid username"))
      *
-     * // This next line is equivalent to the above.
+     * // This next line is equivalent to the above and just avoids
+     * // storing the intermeidate constants.
      * const emailAddressOrError3 = Either.flatMap(appendIfValid)(opt);
      * ```
      */
@@ -337,7 +339,7 @@ var Either = /** @class */ (function () {
      *
      * Makes the Either class into a thenable.
      *
-     * If the instance is a None, a None is returned.
+     * If the instance is a Left, the Either is returned as is.
      * If the provided function returns an Either, the result of
      * applying the function to the underlying value is returned.
      * If the provided function returns a non Either, the result of
@@ -346,9 +348,9 @@ var Either = /** @class */ (function () {
      *
      * @example
      * ```
-     * const myEither = Some(10);
+     * const myEither = Right(10);
      *
-     * const maybeDouble = (val: number): Either<number> => {
+     * const doubleOrError = (val: number): Either<number> => {
      *     Math.random() > .5 ?
      *         Right(val * 2) :
      *         Left("Just not your day :(. Try again next time");
@@ -358,7 +360,7 @@ var Either = /** @class */ (function () {
      *
      * // function calls can be chained with .then regarless if the
      * // functions passed to then return an Either or non Either value.
-     * const eitherErrorOrValue = myEither.then(maybeDouble)
+     * const eitherErrorOrValue = myEither.then(doubleOrError)
      *                                    .then(alwaysDouble);
      * ```
      */
@@ -568,8 +570,8 @@ var Either = /** @class */ (function () {
      * const myRightEither = Either.of(42, 'right');
      * // The above is equivalent to => Right(42)
      *
-     * const myLeftEither = Either.of("Something broke", 'left');
-     * // The above is equivalent to => Left("Something broke");
+     * const myLeftEither = Either.of(42, 'left');
+     * // The above is equivalent to => Left(42);
      * ```
      */
     Either.of = function (val, type) {
