@@ -1,5 +1,15 @@
-export declare const Left: <T>(error: T) => Left<T>;
-export declare const Right: <T>(result: T) => Right<T>;
+/**
+ * Creates a Left Either instance.
+ *
+ * @remarks Left is considered the failed track.
+ */
+export declare const Left: <T>(value: T) => Left<T>;
+/**
+ * Creates a Right Either instance.
+ *
+ * @remarks Right is considered the success track.
+ */
+export declare const Right: <T>(value: T) => Right<T>;
 export declare type Left<A> = Either<A>;
 export declare type Right<A> = Either<A>;
 declare class Either<A> {
@@ -17,6 +27,13 @@ declare class Either<A> {
      * Returns true if the instance is a Right. Returns true otherwise.
      */
     isRight(): boolean;
+    /**
+     * Returns false if the instance is a Left or if the instance is a
+     * Right but fails the predicateFn.
+     * Returns true if and only if the instance is a Right and passes
+     * the predicateFn.
+     */
+    exists(predicateFn: (val: A) => boolean): boolean;
     /**
      * Returns the underlying value regardless of whether the instance
      * is a Left or a Right.

@@ -1,11 +1,23 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Right = exports.Left = void 0;
+/**
+ * Creates a Left Either instance.
+ *
+ * @remarks Left is considered the failed track.
+ */
+var Left = function (value
 // @ts-ignore
-var Left = function (error) { return new Either(error, 'left'); };
+) { return new Either(value, 'left'); };
 exports.Left = Left;
+/**
+ * Creates a Right Either instance.
+ *
+ * @remarks Right is considered the success track.
+ */
+var Right = function (value
 // @ts-ignore
-var Right = function (result) { return new Either(result, 'right'); };
+) { return new Either(value, 'right'); };
 exports.Right = Right;
 var Either = /** @class */ (function () {
     /**
@@ -26,6 +38,15 @@ var Either = /** @class */ (function () {
      */
     Either.prototype.isRight = function () {
         return this.type === 'right';
+    };
+    /**
+     * Returns false if the instance is a Left or if the instance is a
+     * Right but fails the predicateFn.
+     * Returns true if and only if the instance is a Right and passes
+     * the predicateFn.
+     */
+    Either.prototype.exists = function (predicateFn) {
+        return this.isLeft() || predicateFn(this.get());
     };
     /**
      * Returns the underlying value regardless of whether the instance

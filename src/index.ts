@@ -1,12 +1,26 @@
+/**
+ * Creates a Left Either instance.
+ *
+ * @remarks Left is considered the failed track.
+ */
+export const Left = <T>(
+    value: T
 // @ts-ignore
-export const Left = <T>(error: T): Left<T> => new Either(
-    error,
+): Left<T> => new Either(
+    value,
     'left'
 );
 
+/**
+ * Creates a Right Either instance.
+ *
+ * @remarks Right is considered the success track.
+ */
+export const Right = <T>(
+    value: T
 // @ts-ignore
-export const Right = <T>(result: T): Right<T> => new Either (
-    result,
+): Right<T> => new Either (
+    value,
     'right'
 );
 
@@ -38,6 +52,16 @@ class Either<A>{
      */
     isRight(): boolean {
         return this.type === 'right';
+    }
+
+    /**
+     * Returns false if the instance is a Left or if the instance is a
+     * Right but fails the predicateFn.
+     * Returns true if and only if the instance is a Right and passes
+     * the predicateFn.
+     */
+    exists(predicateFn: (val: A) => boolean): boolean {
+        return this.isLeft() || predicateFn(this.get());
     }
 
     /**
