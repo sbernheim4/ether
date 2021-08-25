@@ -8,7 +8,8 @@
     "test": "jest --coverage",
     "test:watch": "jest --watch",
     "build": "tsc",
-    "build:watch": "tsc --watch"
+    "build:watch": "tsc --watch",
+    "prepare": "husky install"
   },
   "keywords": [
     "Either"
