@@ -68,7 +68,9 @@ export class Either<A>{
      * Returns true if and only if the instance is a Right and passes
      * the predicateFn.
      */
-    exists(predicateFn: (val: A) => boolean): boolean {
+    exists(
+        predicateFn: (val: A) => boolean
+    ): boolean {
         return this.isLeft() || predicateFn(this.get());
     }
 
@@ -131,8 +133,9 @@ export class Either<A>{
      * (val: A) => B to be a function of type
      * (val: Either<A>) => Either<B>.
      *
-     * A curried version of map. First accepts the transformation
-     * function, and returns a function that accepts the Either.
+     * Also can be thought of as a curried version of map. First
+     * accepts the transformation function, and returns a function that
+     * accepts the Either.
      *
      * @example
      * ```
@@ -674,9 +677,10 @@ export class Either<A>{
     }
 
     /**
-     * Returns an instance of an Either using the value passed to it.
+     * Returns an instance of an Either using the first argument as the
+     * underlying value.
      * When invoking this function, the caller must specify whether the
-     * instance is a Left or Right using the 2nd argument.
+     * instance is a Left or Right via the 2nd argument.
      *
      * Equivalent to using the Left() or Right() functions.
      *
