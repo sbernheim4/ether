@@ -51,6 +51,7 @@ myEither.log();
 
 
 ## Methods
+```ts
 /**
  * Returns true if the instance is a Left. Returns false otherwise.
  */
@@ -538,3 +539,4 @@ logAndContinue(): Either<A>
  * ```
  */
 static of<T>(val: T, type: 'left' | 'right'): Left<T> | Right<T>
+```
